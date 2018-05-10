@@ -4,14 +4,9 @@ subtitle: "Sampling transects and points"
 author: "Márcio Martins"
 date: "26 Jan 2018"
 output:
-  github_document
-<<<<<<< HEAD
+  github_document:
+    dev: "jpeg"
 always_allow_html: yes
-=======
-  dev:jpeg
-always_allow_html: yes
-
->>>>>>> 2f7d9110d3b51b3a03962cb7a7583a4582d81b99
 ---
 
 ```{r setup, include=FALSE}
@@ -142,9 +137,9 @@ kable_styling(full_width = F)
 
 Now that we have the transects, let's see how accurate an automated methodology to determine sampling points would be. With one point per second, we have a pretty high resolution track for the transects. An interesting method might be to estimate diver's speeds along the transects to find stopping points.
 
-To do so, we will:
+To do so, we will:  
 * Calculate the total distance travelled from start of transect until current point  
-* Calculate travel speed at each point.
+* Calculate travel speed at each point  
 
 We can the distance  between any two points as:
 $$Distance~from~X1~to~X2 = \sqrt{(X_2 - X_1)^2 + (Y_2 - Y_1)^2}$$
