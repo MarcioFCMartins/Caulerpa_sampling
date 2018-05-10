@@ -4,9 +4,10 @@ subtitle: "Sampling transects and points"
 author: "Márcio Martins"
 date: "26 Jan 2018"
 output:
-  html_document:
-    theme: journal
-    dev: png
+  github_document
+  dev:jpeg
+always_allow_html: yes
+
 ---
 
 ```{r setup, include=FALSE}
@@ -36,7 +37,7 @@ To determine the spatial distribution of *Caulerpa prolifera*, divers swam trans
 
 Let's start by importing the tracks. File format is ".gpx". For conveniency, I will convert this information into a more convenient format. There are 4 also tracks on record. We are only interested in the last one.  
 ```{r track, echo = TRUE}
-track <- readOGR("./GPS_caulerpa25012017.gpx", layer = "track_points")
+track <- readOGR("./GPS_tracks.gpx", layer = "track_points")
 
 points <- tibble("trackID" = track@data$track_fid,   #Select variables we are interested in
                  "time"    = track@data$time,
@@ -90,7 +91,7 @@ ggplotly(
   )
 ```
 
-Using this interactive map we can see the first and last points of each trasect and obtain their ID:  
+Using this interactive map we can approximate the first and last points of each trasect and obtain their ID:  
 * Transect one:   Points 1 to 581  
 * Transect two:   Points 2401 to 3811  
 * Transect three: Points 5311 to 6601  
