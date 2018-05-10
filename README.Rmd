@@ -5,9 +5,13 @@ author: "Márcio Martins"
 date: "26 Jan 2018"
 output:
   github_document
+<<<<<<< HEAD
+always_allow_html: yes
+=======
   dev:jpeg
 always_allow_html: yes
 
+>>>>>>> 2f7d9110d3b51b3a03962cb7a7583a4582d81b99
 ---
 
 ```{r setup, include=FALSE}
@@ -35,7 +39,7 @@ To determine the spatial distribution of *Caulerpa prolifera*, divers swam trans
 
 ###Isolating transects
 
-Let's start by importing the tracks. File format is ".gpx". For conveniency, I will convert this information into a more convenient format. There are 4 also tracks on record. We are only interested in the last one.  
+Let's start by importing the tracks. File format is ".gpx". For conveniency, I will convert this information into a matrix-like format. There are 4 also tracks on record. We are only interested in the last one.  
 ```{r track, echo = TRUE}
 track <- readOGR("./GPS_tracks.gpx", layer = "track_points")
 
@@ -53,7 +57,7 @@ points$time <- as.character(points$time) %>%
 head(points)
 ```
 
-Now the information is in a tibble (basically a data.frame). This format is very easy to manipulate with and plot using ggplot2.
+Now the information is in a tibble (basically a data.frame, or a matrix). This format is very easy to manipulate, as well as plot using ggplot2.
 
 Let's start by getting a glimpse of the full track:
 
@@ -72,13 +76,11 @@ ggmap(map) +
   labs(x = "Longitude", y = "Latitude")
 ```
 
-Here we see both the tracks of the boat and the transects.
+Using this information, we need to extract the starting and ending points of each transect. Visually, I can easily find all of the tracks. Since this is possible, I will create an interactive map to allow me to extract the ID number of these points.  
+>Due to limitations in github .md files, this does not work on the github page.  
 
-We need to find the individual transects. Transect 4,3,2 are easy to spot. Transect 1 is quite short and should be  the first segment of the track. Since the transects can be spotted visually, let's make an interactive map and scroll over the start and end of each transect to get the ID for those points.
-
->Most important functions in this map: ability to zoom in to the area of each transect and then mouseover the points to get their ID (variable "nr")
-
-```{r interactive_track}
+```{r interactive_track, include = FALSE}
+#Let's select every other 10th point for plotting to ease the size of the map
 points_simple <- points[seq(1,nrow(points),10),]
 
 ggplotly(
@@ -97,7 +99,7 @@ Using this interactive map we can approximate the first and last points of each 
 * Transect three: Points 5311 to 6601  
 * Transect four : Points 8311 to 9571  
   
-Let's filter the data to these intervals, label the transects and plot them!
+We can now extract the transects.
 ```{r transects}
 t1 <- points %>%
       filter(nr <= 581)
@@ -125,7 +127,7 @@ ggmap(map) +
   labs(x = "Longitude", y = "Latitude") +
   theme(legend.position = "none")
 ```
-The resulting transects seem believable. However, results should be confirmed by checking starting and ending times for transects in the videos. To make this task easier, let's make a table with start/end times for the transects obtained here.
+The resulting transects seem accurate. However, results should be confirmed by checking starting and ending times for transects in the videos. To make this task easier, let's make a table with start/end times for the transects obtained here.
 
 ```{r time_table}
 kable(transects %>%
@@ -136,19 +138,22 @@ kable(transects %>%
 kable_styling(full_width = F)
 ```
 
-
 ##Sampling points
 
-Can we find the sampling points using this data?
-With one point per second, we have a decent estimation of the diver's full track as well as speed. We can the distance  between any two points as:
-$$\sqrt{(X_2 - X_1)^2 + (Y_2 - Y_1)^2}$$
+Now that we have the transects, let's see how accurate an automated methodology to determine sampling points would be. With one point per second, we have a pretty high resolution track for the transects. An interesting method might be to estimate diver's speeds along the transects to find stopping points.
 
-The full distance travelled from the start of the transect (let's call it i) to any other point along the transect (let's call it point n) can then be calculated as:
-$$\sum_{i=1}^n \sqrt{(X_i - X_{i-1})^2 + (Y_i - Y_{i-1})^2}$$
-(this just means we sum the distance between all points up to current point)
+To do so, we will:
+* Calculate the total distance travelled from start of transect until current point  
+* Calculate travel speed at each point.
 
-With information of distance traveled and time, we can estimate their speed. We'll do so by subtracting a distance value 5 seconds ago to current distance divided by 5. This means that every point containts their speed over the previous 5 seconds.
+We can the distance  between any two points as:
+$$Distance~from~X1~to~X2 = \sqrt{(X_2 - X_1)^2 + (Y_2 - Y_1)^2}$$
 
+The full distance travelled from the start of the transect to any given time is then simply the cumulative sum of distances of all previous points. To this we will call $\Delta Distance_{time}$
+
+With information of distance traveled and time, we can estimate their speed. The current speed at any given point will be calculated as the speed over the previous 10 seconds:
+$$Speed_{time} = \Delta Distance_{time} - \Delta Distance_{time - 10}$$
+Because we're only interested in how fast they are going relative to other points in the transect, I will leave distance units as degrees and will calculate speed as degrees per second.
 ```{r speed}
 transects <- transects %>% 
              group_by(transect) %>%
@@ -162,7 +167,7 @@ transects <- transects %>%
 
 transects <- transects %>%
              group_by(transect) %>%
-             mutate(speed = (distance - lag(distance, n = 20, default = 0))/20)
+             mutate(speed = (distance - lag(distance, n = 10, default = 0))/10)
 
 ggplot(transects) +
   geom_line(aes(x = distance, y = speed)) +
