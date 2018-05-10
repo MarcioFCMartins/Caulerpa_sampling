@@ -7,6 +7,8 @@ output:
   github_document:
     dev: "jpeg"
 always_allow_html: yes
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -173,7 +175,7 @@ ggplot(transects) +
 
 This looks interesting. I suspect it's not enough to identify all stops due to stops without coverage where the stop time was too short. Also, uncertainty in the start and end of transects makes it hard to be sure of stops at the limits. 
 
-Still, it might be interesting to plot the transects, with color based on speed. Because average speed was different amongst transects, let's increase contrast of the colors by scaling the speed. To do so, I will scale the speed within each transect. We lose information about speed differences amongst transects but keep information about the parts of a transect that were slow, compared to the rest of the transect. Scaling will be a standartization.
+Still, it might be interesting to plot the transects, with color based on speed. Because average speed was different amongst transects, let's increase contrast of the colors. To do so, I will standardize the speed within each individual transect (subtract mean and divide by sd). We lose information about speed differences amongst transects but keep information about the parts of a transect that were slow, compared to the rest of the transect. 
 
 ```{r scaled_speed}
 transects <- transects %>%
@@ -198,7 +200,7 @@ ggplot() +
   theme_bw()
 ```
 
-Maybe this can actually work? I can definitely see a bit of an overlap between slower (bluer) areas and "bumps" in the transects. Let's add even more contrast to this by instead using two categories to color sections: a quantile. Sections with speed below that quantile will be colored blue. A bit of trial and error showed that 40th quantile is a good compromise for all transects.
+This is promising. Parts of slower movement are visible along the transect. Let's add even more contrast by dividing points based on quantiles. Sections with speed below the decided quantile will be colored blue. A bit of trial and error showed that 40th quantile is a good compromise for all transects.
 
 ```{r speed_quantile}
 transects <- transects %>%
@@ -218,7 +220,7 @@ ggplot() +
   theme_bw()
 ```
 
-We're getting somewhere now!
+We're getting somewhere now.
 
 ##Plot points obtained by checking the camera
 By checking the camera footage, sampling times were determined. Times were then cross-referenced with GPS data to get the sampling point coordinates.  
@@ -234,9 +236,9 @@ ggplot() +
   scale_color_manual(values = c("#ff0008","#0061ff")) +
   geom_point(data = transects %>% filter(extremety %in% c("start","end")),
              aes(x = long, y = lat, fill = extremety),
-             size = 3,
+             size = 2,
              shape = 21) +
-  geom_point(data = sampling_points, aes(x = Long, y = Lat)) +
+  geom_point(data = sampling_points, aes(x = Long, y = Lat), shape = 1, size = 3) +
   facet_wrap(~ transect, scales = "free") +
   scale_fill_manual(values = c("start" = "#33a02c", "end" = "#ff7f00")) + 
   labs(x = "Longitude", y = "Latitude", color = "Speed", fill = "") +
