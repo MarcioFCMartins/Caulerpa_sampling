@@ -200,10 +200,17 @@ To do so, we will:
 We can the distance between any two points p1 and p2:
 Distance <sub>p1 to p2</sub> = Square root ((X<sub>2</sub> - X<sub>1</sub>) + (Y<sub>2</sub> - Y<sub>1</sub>))
 
+<<<<<<< HEAD
 The full distance travelled from the start of the transect to any given time is then simply the cumulative sum of distances of all previous points. To this we will call Delta Distance.
 
 We can now estimate their speed. The current speed at any given point will be calculated as the speed over the previous 10 seconds:
 Speed<sub>at time</sub> = Delta Distance<sub>time</sub> - Delta Distance<sub>time - 10</sub>
+=======
+The full distance travelled from the start of the transect to any given time is then simply the cumulative sum of distances of all previous points. To this we will call &\#916 Distance.
+
+We can now estimate their speed. The current speed at any given point will be calculated as the speed over the previous 10 seconds:
+Speed<sub>time</sub> = &\#916 Distance<sub>time</sub> - &\#916 Distance<sub>time - 10</sub>
+>>>>>>> 1b32add125f7a01a9ebc4010fb1cc7fdb76073dc
 
 Because we're only interested in how fast they are going relative to other points in the transect, I will leave distance units as degrees and will calculate speed as degrees per second.
 
