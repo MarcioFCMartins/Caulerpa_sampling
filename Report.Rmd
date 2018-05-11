@@ -1,0 +1,242 @@
+---
+title: "Caulerpa sampling in the Ria Formosa"
+subtitle: "Sampling transects and points"
+author: "Márcio Martins"
+date: "26 Jan 2018"
+output:
+  html_document:
+    theme: journal
+    dev: png
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, message = FALSE, warning = FALSE, fig.align = "center")
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+library(lubridate)
+library(rgdal)
+library(ggmap)
+library(plotly)
+library(ggbeeswarm)
+```
+
+##Caulerpa prolifera sampling transects
+* The track of the divers was recorded by GPS  
+* GPS track is continuous between transects and includes boat travel
+* There are a total of 4 transects
+* Each transect has points where samples where taken
+
+**GOALS:**  
+1. To isolate and extract each transect  
+2. To explore the transect data and try to determine sampling points
+
+###Isolating transects
+Let's start by importing the .gpx file with the GPS register.  
+There are 4 tracks on record. We are only interested in the last one.  
+```{r track, echo = TRUE}
+track <- readOGR("./GPS_caulerpa25012017.gpx", layer = "track_points")
+
+points <- tibble("trackID" = track@data$track_fid,   #Select only info we are interested in
+                 "time"    = track@data$time,
+                 "lat"     = track@coords[,2],
+                 "long"    = track@coords[,1]) %>%
+          filter(trackID == 4) %>%                   #Only keep track 4
+          select(-trackID)                           #Remove trackID variable
+
+#Time is imported as a factor, change to POSIXct date
+points$time <- as.character(points$time) %>%
+               ymd_hms()
+
+head(points)
+```
+
+Now the information is in a tibble (basically a data.frame). This format is easy to work with and to plot.  
+
+Let's start by getting a glimpse of the full track:
+
+```{r track_plot}
+#Assign a number ID to the points, it will be used to identify points later
+points$nr <- c(1:nrow(points))
+
+map <- get_map(location = c(long = -7.819869, lat = 37.00763),
+               color = "color",
+               source = "google",
+               maptype = "satellite",
+               zoom = 14)
+ggmap(map) +
+  geom_path(data = points, aes(x = long, y = lat), size = 1) +
+  lims(x = c(min(points$long), max(points$long)), y = c(37.00176, 37.01067)) +
+  labs(x = "Longitude", y = "Latitude")
+```
+
+Here we see both the tracks of the boat and the transects.
+
+We need to find the individual transects. Transect 4,3,2 are easy to spot. Transect 1 is quite short and should be  the first segment of the track. Since the transects can be spotted visually, let's make an interactive map and scroll over the start and end of each transect to get the ID for those points.
+
+>Most important functions in this map: ability to zoom in to the area of each transect and then mouseover the points to get their ID (variable "nr")
+
+```{r interactive_track}
+points_simple <- points[seq(1,nrow(points),10),]
+
+ggplotly(
+  ggmap(map) +
+  geom_point(data = points_simple, aes(x = long, y = lat, color = nr), size = 0.5) +
+  scale_color_gradient2(low = "#a50026", mid = "#ffffbf", high = "#313695", midpoint = nrow(points)/2) +
+  lims(x = c(min(points$long), max(points$long)), y = c(min(points$lat), max(points$lat))) +
+  labs(x = "Longitude", y = "Latitude") +
+  theme(legend.position = "none")
+  )
+```
+
+Using this interactive map we can see the first and last points of each trasect and obtain their ID:  
+* Transect one:   Points 1 to 581  
+* Transect two:   Points 2401 to 3811  
+* Transect three: Points 5311 to 6601  
+* Transect four : Points 8311 to 9571  
+  
+Let's filter the data to these intervals, label the transects and plot them!
+```{r transects}
+t1 <- points %>%
+      filter(nr <= 581)
+t1$transect <- 1
+
+t2 <- points %>%
+      filter(nr >= 2401 & nr <= 3811)
+t2$transect <- 2
+
+t3 <- points %>%
+      filter(nr >= 5311 & nr <= 6601)
+t3$transect <- 3
+
+t4 <- points %>%
+      filter(nr >= 8311 & nr <= 9571)
+t4$transect <- 4
+
+transects <- rbind(t1,t2,t3,t4) %>%
+             mutate(transect = as.factor(transect))
+
+ggmap(map) +
+  geom_path(data = transects, aes(x = long, y = lat, color = transect, group = transect), size = 0.5) +
+  scale_color_manual(values = c("#e41a1c", "#4daf4a", "#984ea3","#ff7f00")) +
+  lims(x = c(min(points$long), max(points$long)), y = c(37.00176, 37.01067)) +
+  labs(x = "Longitude", y = "Latitude") +
+  theme(legend.position = "none")
+```
+The resulting transects seem believable. However, results should be confirmed by checking starting and ending times for transects in the videos. To make this task easier, let's make a table with start/end times for the transects obtained here.
+
+```{r time_table}
+kable(transects %>%
+      group_by(transect) %>%
+      summarise(Start = min(time), End = max(time)),
+  align = c("c","c","c"),
+  format = "html") %>%
+kable_styling(full_width = F)
+```
+
+
+##Sampling points
+
+Can we find the sampling points using this data?
+With one point per second, we have a decent estimation of the diver's full track as well as speed. We can the distance  between any two points as:
+$$\sqrt{(X_2 - X_1)^2 + (Y_2 - Y_1)^2}$$
+
+The full distance travelled from the start of the transect (let's call it i) to any other point along the transect (let's call it point n) can then be calculated as:
+$$\sum_{i=1}^n \sqrt{(X_i - X_{i-1})^2 + (Y_i - Y_{i-1})^2}$$
+(this just means we sum the distance between all points up to current point)
+
+With information of distance traveled and time, we can estimate their speed. We'll do so by subtracting a distance value 5 seconds ago to current distance divided by 5. This means that every point containts their speed over the previous 5 seconds.
+
+```{r speed}
+transects <- transects %>% 
+             group_by(transect) %>%
+             mutate(distance = sqrt((lat - lag(lat))^2 + (long - lag(long))^2)) 
+
+transects$distance[is.na(transects$distance)] <- 0
+
+transects <- transects %>%
+             group_by(transect) %>%
+             mutate(distance = cumsum(distance - min(distance)))
+
+transects <- transects %>%
+             group_by(transect) %>%
+             mutate(speed = (distance - lag(distance, n = 20, default = 0))/20)
+
+ggplot(transects) +
+  geom_line(aes(x = distance, y = speed)) +
+  facet_wrap(~ transect, scales = "free") +
+  labs(x = "Distance along the transect (degrees)", y = "Speed (degrees/s)") +
+  theme_bw()
+```
+
+This looks interesting. I suspect it's not enough to identify all stops due to stops without coverage where the stop time was too short. Also, uncertainty in the start and end of transects makes it hard to be sure of stops at the limits. 
+
+Still, it might be interesting to plot the transects, with color based on speed. Because average speed was different amongst transects, let's increase contrast of the colors by scaling the speed. To do so, I will scale the speed within each transect. We lose information about speed differences amongst transects but keep information about the parts of a transect that were slow, compared to the rest of the transect. Scaling will be a standartization.
+
+```{r scaled_speed}
+transects <- transects %>%
+             group_by(transect) %>%
+             mutate(scaled_speed = (speed - mean(speed))/sd(speed),
+                    extremety = case_when(nr == min(nr) ~ "start",
+                                          nr == max(nr) ~ "end",
+                                          TRUE ~ "no"))
+
+ggplot() +
+  geom_path(data = transects,
+            aes(x = long, y = lat, color = scaled_speed), 
+            size = 2) +
+  scale_color_gradient(high = "#ff0008", low = "#0061ff") +
+  geom_point(data = transects %>% filter(extremety %in% c("start","end")),
+             aes(x = long, y = lat, fill = extremety),
+             size = 3,
+             shape = 21) +
+  scale_fill_manual(values = c("start" = "#33a02c", "end" = "#ff7f00")) + 
+  facet_wrap(~ transect, scales = "free")+
+  labs(x = "Longitude", y = "Latitude", color = "Scaled speed", fill = "") +
+  theme_bw()
+```
+
+Maybe this can actually work? I can definitely see a bit of an overlap between slower (bluer) areas and "bumps" in the transects. Let's add even more contrast to this by instead using two categories to color sections: a quantile. Sections with speed below that quantile will be colored blue. A bit of trial and error showed that 40th quantile is a good compromise for all transects.
+
+```{r speed_quantile}
+transects <- transects %>%
+             group_by(transect) %>%
+             mutate(quant40_speed= ifelse(scaled_speed < quantile(scaled_speed, 0.40), "slow", "fast"))
+
+ggplot() +
+  geom_path(data = transects, aes(x = long, y = lat, color = quant40_speed, group = transect), size = 2) +
+  scale_color_manual(values = c("#ff0008","#0061ff")) +
+  facet_wrap(~ transect, scales = "free")+
+  geom_point(data = transects %>% filter(extremety %in% c("start","end")),
+             aes(x = long, y = lat, fill = extremety),
+             size = 3,
+             shape = 21) +
+  scale_fill_manual(values = c("start" = "#33a02c", "end" = "#ff7f00")) + 
+  labs(x = "Longitude", y = "Latitude", color = "Speed", fill = "") +
+  theme_bw()
+```
+
+We're getting somewhere now!
+
+##Plot points obtained by checking the camera
+By checking the camera footage, sampling times were determined. Times were then cross-referenced with GPS data to get the sampling point coordinates.  
+  
+Let's plot them vs the points we obtained by speed.
+```{r points_plot}
+sampling_points <- read_csv2("./sampling_points.csv") %>%
+                   rename(transect = Transect)
+
+
+ggplot() +
+  geom_path(data = transects, aes(x = long, y = lat, color = quant40_speed, group = transect), size = 2) +
+  scale_color_manual(values = c("#ff0008","#0061ff")) +
+  geom_point(data = transects %>% filter(extremety %in% c("start","end")),
+             aes(x = long, y = lat, fill = extremety),
+             size = 3,
+             shape = 21) +
+  geom_point(data = sampling_points, aes(x = Long, y = Lat)) +
+  facet_wrap(~ transect, scales = "free") +
+  scale_fill_manual(values = c("start" = "#33a02c", "end" = "#ff7f00")) + 
+  labs(x = "Longitude", y = "Latitude", color = "Speed", fill = "") +
+  theme_bw()
+```
