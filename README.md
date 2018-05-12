@@ -3,6 +3,8 @@ Caulerpa sampling in the Ria Formosa
 Márcio Martins
 26 Jan 2018
 
+Caulerpa prolifera sampling transects
+-------------------------------------
 
 To determine the spatial distribution of *Caulerpa prolifera*, divers swam transects across a canal in the Ria Formosa lagoon (South Portugal) and stopped at pre-determined intervals to collect samples.
 
@@ -12,12 +14,12 @@ To determine the spatial distribution of *Caulerpa prolifera*, divers swam trans
 -   Sampling points were also determined by having a user look at footage of the dives, mark the times at which samples were taken and them crossing them with the GPS data. These points were then used to confirm if this automatic method is accurate
 
 **GOALS:**
-1. To determine start and end point of each transect, isolate and extract them
-2. Using the extracted transects, attempt to determine sampling points
+1. To determine start and end point of each transect, isolate and extract them.
+2. Determine sampling points along the transect.
 
 ### Isolating transects
 
-Let's start by importing the tracks. File format is ".gpx". For conveniency, I will convert this information into a matrix-like format. There are 4 also tracks on record. We are only interested in the last one.
+Let's start by importing the tracks. File format is ".gpx". For conveniency, I will convert this information into a tabular format. There are 4 also tracks on record. We are only interested in the last one.
 
 ``` r
 track <- readOGR("./GPS_tracks.gpx", layer = "track_points")
@@ -53,7 +55,7 @@ head(points)
     ## 5 2018-01-25 12:38:19  37.0 -7.81
     ## 6 2018-01-25 12:38:20  37.0 -7.81
 
-Now the information is in a tibble (basically a data.frame, or a matrix). This format is very easy to manipulate, as well as plot using ggplot2.
+Now the information is in a tibble (a "modern take on data frames"). This format is very easy to manipulate, as well as plot using ggplot2.
 
 Let's start by getting a glimpse of the full track:
 
@@ -79,10 +81,10 @@ Using this information, we need to extract the starting and ending points of eac
 > Due to limitations in github .md files, this does not work on the github page.
 
 Using this interactive map we can approximate the first and last points of each trasect and obtain their ID:
-* Transect one: Points 1 to 581
-* Transect two: Points 2401 to 3811
-* Transect three: Points 5311 to 6601
-* Transect four : Points 8311 to 9571
+- Transect one: Points 1 to 581
+- Transect two: Points 2401 to 3811
+- Transect three: Points 5311 to 6601
+- Transect four : Points 8311 to 9571
 
 We can now extract the transects.
 
@@ -114,7 +116,9 @@ ggmap(map) +
   theme(legend.position = "none")
 ```
 
-<img src="README_files/figure-markdown_github/transects-1.png" style="display: block; margin: auto;" /> The resulting transects seem accurate. However, results should be confirmed by checking starting and ending times for transects in the videos. To make this task easier, let's make a table with start/end times for the transects obtained here.
+<img src="README_files/figure-markdown_github/transects-1.png" style="display: block; margin: auto;" />
+
+The resulting transects seem accurate. However, results should be confirmed by checking starting and ending times for transects in the videos. To make this task easier, let's make a table with start/end times for the transects obtained here.
 
 ``` r
 kable(transects %>%
@@ -186,8 +190,7 @@ End
 </tr>
 </tbody>
 </table>
-
-##Sampling points
+### Sampling points
 
 Now that we have the transects, let's see how accurate an automated methodology to determine sampling points would be. With one point per second, we have a pretty high resolution track for the transects. An interesting method might be to estimate diver's speeds along the transects to find stopping points.
 
@@ -196,12 +199,12 @@ To do so, we will:
 -   Calculate the total distance travelled from start of transect until current point
 -   Calculate travel speed at each point
 
-The distance between any two points p1 and p2 is given by: Distance <sub>p1 to p2</sub> = Square root ((X<sub>2</sub> - X<sub>1</sub>) + (Y<sub>2</sub> - Y<sub>1</sub>))
+The distance between any two points p1 and p2 is given by: Distance <sub>p1 to p2</sub> = Square root ((X<sub>2</sub> - X<sub>1</sub>)<sup>2</sup> + (Y<sub>2</sub> - Y<sub>1</sub>)<sup>2</sup>)
 
 The full distance travelled from the start of the transect to any given point is then simply the cumulative sum of distance. To this we will call Delta Distance.
 
 The diver speed at any given point can be calculated as the speed over the previous 10 seconds:
-Speed<sub>at time</sub> = Delta Distance<sub>time</sub> - Delta Distance<sub>time - 10</sub>
+Speed<sub>at time</sub> = (Delta Distance<sub>time - 10</sub> - Delta Distance<sub>time</sub>)/10
 
 Because we're only interested in how fast they are going relative to other points in the transect, we will leave distance units as degrees and will calculate speed as degrees per second.
 
@@ -248,7 +251,7 @@ ggplot() +
              aes(x = long, y = lat, fill = extremety),
              size = 3,
              shape = 21) +
-  scale_fill_manual(values = c("start" = "#33a02c", "end" = "#ff7f00")) + 
+  scale_fill_manual(values = points_palette) + 
   facet_wrap(~ transect, scales = "free")+
   labs(x = "Longitude", y = "Latitude", color = "Scaled speed", fill = "") +
   theme_bw()
@@ -271,7 +274,7 @@ ggplot() +
              aes(x = long, y = lat, fill = extremety),
              size = 3,
              shape = 21) +
-  scale_fill_manual(values = c("start" = "#33a02c", "end" = "#ff7f00")) + 
+  scale_fill_manual(values = points_palette) + 
   labs(x = "Longitude", y = "Latitude", color = "Speed", fill = "") +
   theme_bw()
 ```
@@ -280,7 +283,7 @@ ggplot() +
 
 We're getting somewhere now.
 
-#Estimated vs real sampling points
+### Estimated vs real sampling points
 
 All of the sampling points were manually determined using video footage of the dive and cross referencing the times at which samples were taken with with time of the GPS footage. To see how effective our sampling point location is we can now plot automatic and manually determined points and see how close they are.
 
@@ -289,7 +292,7 @@ All of the sampling points were manually determined using video footage of the d
 identify_points <- function(vector,interval){
   interval <- interval - 1
   point_id <- 1                       #initialize a number to identify sampling points
-  ids <- vector(mode = "numeric")     #Vector to store point ids
+  ids <- vector(mode = "numeric")     #Vector to stopre sampling points id number
   for(i in 1:length(vector)){
     #If 10 points in a row are considered slow, return TRUE (divers are stoped)
     stopped <- all(c(vector[i:i+interval]) == "slow")
@@ -299,7 +302,7 @@ identify_points <- function(vector,interval){
            point_id,
            NA))
     
-    point_id <- ifelse(stopped, point_id, point_id + 1) #If divers are moving again, increase point ID counter. This does not identify the points in numeric order, but that is not necessary
+    point_id <- ifelse(stopped, point_id, point_id + 1) #If divers are moving, increase point ID counter. This does not create a continuous ID (there are gaps), but that is not necessary
   }
   return(ids)
 }
@@ -307,10 +310,10 @@ identify_points <- function(vector,interval){
 transects_smooth <- transects %>%         #To plot smooth transects I will average every 10 points and plot a path
                     select(lat, long, nr, transect, extremety) %>%
                     group_by(transect) %>%
-                    mutate(long = rollmean(long, 10, fill = NA),
-                           lat  = rollmean(lat, 10, fill = NA)) %>%
+                    mutate(long = rollmean(long, 20, fill = NA, aling = "center"),
+                           lat  = rollmean(lat, 20, fill = NA), aling = "center") %>%
                     filter(!is.na(lat)) %>%
-                    .[seq(1, nrow(.), 10),]  %>% #Select every 10th point
+                    .[seq(1, nrow(.), 20),]  %>% #Select every 10th point
                     ungroup()
 
 sampling_points <- read_csv2("./sampling_points.csv") %>%  #Import the manually determined points
@@ -339,7 +342,7 @@ ggplot() +
   geom_path(data = transects_smooth, aes(x = long, y = lat, group = transect), size = 1) +
   geom_point(data = plot_points, aes( x = long, y = lat, color = name, size = name)) +
   facet_wrap(~ transect, scales = "free") +
-  scale_color_manual(values = c("start" = "#33a02c", "end" = "#ff7f00", "sampling point" = "red", "estimated point" = "blue")) + 
+  scale_color_manual(values = points_palette) + 
   scale_size_manual(values = c("start" = 3, "end" = 3, "sampling point" = 2, "estimated point" = 1), guide = FALSE) +
   labs(x = "Longitude", y = "Latitude", color = "Speed", fill = "") +
   theme_bw()
@@ -349,12 +352,14 @@ ggplot() +
 
 This methodology seems to be usefull to approximate sampling locations without manually going through video footage. One pattern is also very obvious: it was much more accurate in the last 2 transects than the first ones. There are also some points that were not detected at all. Here is the list of reasons I believe is causing the largest flaws in the method:
 
-*   One of the divers was using a scuba scooter for the first time. I believe this is why there are some random stops in transect 1
-*  In areas where there was no caulerpa, the divers simply kept going, meaning there is no stop
-*  Part of transect one was not even recorded in the GPS data (memory was full and it was overwritten)
+-   One of the divers was using a scuba scooter for the first time, and the first dive was done against the current. This made the first transect's speed fluctuate a
+-   In areas where there was no *Caulerpa prolifera*, the divers simply kept going, meaning there is no stop
+-   Part of transect one was not even recorded in the GPS data (memory was full and it was overwritten)
 
-Much of this can be fixed:
-* Change GPS to record points every 5 seconds, rather than 1 increases the time we can record 5-fold (and carry an extra GPS just in case)
-* Ensure divers ALWAYS stop a minimum of 30 seconds, even if there is no Caulerpa in the area
-* Record transect start and end time, so that transects can be extracted easily  
-* Extract number of estimated sampling points and see if they match real number of samples as a checking method
+**Much of this can be fixed by setting some rules for field work:**
+- Change GPS to record points every 5 seconds, rather than 1 increases the time we can record 5-fold, while maintaining a high resolution (make sure to carry an extra GPS just in case)
+- Ensure divers ALWAYS stop a minimum of 30 seconds per sampling point, even if there is no Caulerpa in the area
+- Record transect start and end time, so that transects can be extracted easily by filtering points between certain time periods
+
+**The reliability of the processing can be improved by:** - Smoothing the time series (a simple running average would likely be enough) to decrease noise in the the data and only leave stopping. This might not be as important if recording interval is changed from 1 second to 5, but it's worth looking into
+- As a check for accuracy of results, extract number of estimated sampling points and see if they match real number of samples (really easy to do at this point)
