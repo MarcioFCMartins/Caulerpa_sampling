@@ -350,7 +350,7 @@ ggplot() +
 
 <img src="README_files/figure-markdown_github/points_plot-1.png" style="display: block; margin: auto;" />
 
-This methodology seems to be usefull to approximate sampling locations without manually going through video footage. One pattern is also very obvious: it was much more accurate in the last 2 transects than the first ones. There are also some points that were not detected at all. Here is the list of reasons I believe is causing the largest flaws in the method:
+This methodology seems to be useful to approximate sampling locations without manually going through video footage. One pattern is also very obvious: it was much more accurate in the last 2 transects than the first ones. There are also some points that were not detected at all. Here is the the biggest causes for those errors:
 
 -   One of the divers was using a scuba scooter for the first time, and the first dive was done against the current. This made the first transect's speed fluctuate a
 -   In areas where there was no *Caulerpa prolifera*, the divers simply kept going, meaning there is no stop
@@ -361,5 +361,6 @@ This methodology seems to be usefull to approximate sampling locations without m
 - Ensure divers ALWAYS stop a minimum of 30 seconds per sampling point, even if there is no Caulerpa in the area
 - Record transect start and end time, so that transects can be extracted easily by filtering points between certain time periods
 
-**The reliability of the processing can be improved by:** - Smoothing the time series (a simple running average would likely be enough) to decrease noise in the the data and only leave stopping. This might not be as important if recording interval is changed from 1 second to 5, but it's worth looking into
+**The reliability of the processing can be improved by:**
+- Smoothing the time series (a simple running average would likely be enough) to decrease noise in the the data and only leave stopping. This might not be as important if recording interval is changed from 1 second to 5, but it's worth looking into
 - As a check for accuracy of results, extract number of estimated sampling points and see if they match real number of samples (really easy to do at this point)
