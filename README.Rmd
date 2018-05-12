@@ -138,6 +138,7 @@ kable_styling(full_width = F)
 
 ```
 
+
 ##Sampling points
 
 Now that we have the transects, let's see how accurate an automated methodology to determine sampling points would be. With one point per second, we have a pretty high resolution track for the transects. An interesting method might be to estimate diver's speeds along the transects to find stopping points.  
@@ -302,5 +303,5 @@ This methodology seems to be usefull to approximate sampling locations without m
 Much of this can be fixed:  
 * Change GPS to record points every 5 seconds, rather than 1 increases the time we can record 5-fold (and carry an extra GPS just in case)  
 * Ensure divers ALWAYS stop a minimum of 30 seconds, even if there is no Caulerpa in the area  
-* Record transect start and end time, so that transects can be extracted easily
+* Record transect start and end time, so that transects can be extracted easily  
 * Extract number of estimated sampling points and see if they match real number of samples as a checking method

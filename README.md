@@ -3,8 +3,6 @@ Caulerpa sampling in the Ria Formosa
 Márcio Martins
 26 Jan 2018
 
-Caulerpa prolifera sampling transects
--------------------------------------
 
 To determine the spatial distribution of *Caulerpa prolifera*, divers swam transects across a canal in the Ria Formosa lagoon (South Portugal) and stopped at pre-determined intervals to collect samples.
 
@@ -81,10 +79,10 @@ Using this information, we need to extract the starting and ending points of eac
 > Due to limitations in github .md files, this does not work on the github page.
 
 Using this interactive map we can approximate the first and last points of each trasect and obtain their ID:
-\* Transect one: Points 1 to 581
-\* Transect two: Points 2401 to 3811
-\* Transect three: Points 5311 to 6601
-\* Transect four : Points 8311 to 9571
+* Transect one: Points 1 to 581
+* Transect two: Points 2401 to 3811
+* Transect three: Points 5311 to 6601
+* Transect four : Points 8311 to 9571
 
 We can now extract the transects.
 
@@ -282,8 +280,7 @@ ggplot() +
 
 We're getting somewhere now.
 
-Estimated vs real sampling points
----------------------------------
+#Estimated vs real sampling points
 
 All of the sampling points were manually determined using video footage of the dive and cross referencing the times at which samples were taken with with time of the GPS footage. To see how effective our sampling point location is we can now plot automatic and manually determined points and see how close they are.
 
@@ -352,11 +349,12 @@ ggplot() +
 
 This methodology seems to be usefull to approximate sampling locations without manually going through video footage. One pattern is also very obvious: it was much more accurate in the last 2 transects than the first ones. There are also some points that were not detected at all. Here is the list of reasons I believe is causing the largest flaws in the method:
 
--   One of the divers was using a scuba scooter for the first time. I believe this is why there are some random stops in transect 1
--   In areas where there was no caulerpa, the divers simply kept going, meaning there is no stop
--   Part of transect one was not even recorded in the GPS data (memory was full and it was overwritten)
+*   One of the divers was using a scuba scooter for the first time. I believe this is why there are some random stops in transect 1
+*  In areas where there was no caulerpa, the divers simply kept going, meaning there is no stop
+*  Part of transect one was not even recorded in the GPS data (memory was full and it was overwritten)
 
 Much of this can be fixed:
-\* Change GPS to record points every 5 seconds, rather than 1 increases the time we can record 5-fold (and carry an extra GPS just in case)
-\* Ensure divers ALWAYS stop a minimum of 30 seconds, even if there is no Caulerpa in the area
-\* Record transect start and end time, so that transects can be extracted easily \* Extract number of estimated sampling points and see if they match real number of samples as a checking method
+* Change GPS to record points every 5 seconds, rather than 1 increases the time we can record 5-fold (and carry an extra GPS just in case)
+* Ensure divers ALWAYS stop a minimum of 30 seconds, even if there is no Caulerpa in the area
+* Record transect start and end time, so that transects can be extracted easily  
+* Extract number of estimated sampling points and see if they match real number of samples as a checking method
