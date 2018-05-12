@@ -137,6 +137,7 @@ kable(transects %>%
 kable_styling(full_width = F)
 ```
   
+  
 ##Sampling points
 Now that we have the transects, let's see how accurate an automated methodology to determine sampling points would be. With one point per second, we have a pretty high resolution track for the transects. An interesting method might be to estimate diver's speeds along the transects to find stopping points.  
 
@@ -225,7 +226,8 @@ ggplot() +
 
 We're getting somewhere now.  
 
-##Plot points obtained by checking the camera
+##Estimated vs real sampling points  
+
 All of the sampling points were manually determined using video footage of the dive and cross referencing the times at which samples were taken with with time of the GPS footage.  To see how effective our sampling point location is we can now plot automatic and manually determined points and see how close they are.
 
 

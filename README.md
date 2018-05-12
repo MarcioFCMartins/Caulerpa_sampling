@@ -282,8 +282,8 @@ ggplot() +
 
 We're getting somewhere now.
 
-Plot points obtained by checking the camera
--------------------------------------------
+Estimated vs real sampling points
+---------------------------------
 
 All of the sampling points were manually determined using video footage of the dive and cross referencing the times at which samples were taken with with time of the GPS footage. To see how effective our sampling point location is we can now plot automatic and manually determined points and see how close they are.
 
