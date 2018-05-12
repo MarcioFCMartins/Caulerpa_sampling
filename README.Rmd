@@ -203,7 +203,7 @@ ggplot() +
   theme_bw()
 ```
 
-This is promising. Parts of slower movement are visible along the transect. Let's add even more contrast by dividing points based on quantiles. Sections with speed below the decided quantile will be colored blue. A bit of trial and error showed that 40th quantile is a good compromise for all transects.
+This is promising. Parts of slower movement are visible along the transect. Let's add even more contrast by dividing points based on quantiles. Sections with speed below the decided quantile will be colored blue. A bit of trial and error showed that 40th quantile is a good compromise for all transects.  
 
 ```{r speed_quantile}
 transects <- transects %>%
@@ -223,7 +223,7 @@ ggplot() +
   theme_bw()
 ```
 
-We're getting somewhere now.
+We're getting somewhere now.  
 
 ##Plot points obtained by checking the camera
 All of the sampling points were manually determined using video footage of the dive and cross referencing the times at which samples were taken with with time of the GPS footage.  To see how effective our sampling point location is we can now plot automatic and manually determined points and see how close they are.
