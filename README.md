@@ -186,8 +186,8 @@ End
 </tr>
 </tbody>
 </table>
-Sampling points
----------------
+
+##Sampling points
 
 Now that we have the transects, let's see how accurate an automated methodology to determine sampling points would be. With one point per second, we have a pretty high resolution track for the transects. An interesting method might be to estimate diver's speeds along the transects to find stopping points.
 
