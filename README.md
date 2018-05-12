@@ -194,25 +194,18 @@ Sampling points
 Now that we have the transects, let's see how accurate an automated methodology to determine sampling points would be. With one point per second, we have a pretty high resolution track for the transects. An interesting method might be to estimate diver's speeds along the transects to find stopping points.
 
 To do so, we will:
-\* Calculate the total distance travelled from start of transect until current point
-\* Calculate travel speed at each point
 
-We can the distance between any two points p1 and p2:
-Distance <sub>p1 to p2</sub> = Square root ((X<sub>2</sub> - X<sub>1</sub>) + (Y<sub>2</sub> - Y<sub>1</sub>))
+-   Calculate the total distance travelled from start of transect until current point
+-   Calculate travel speed at each point
 
-<<<<<<< HEAD
-The full distance travelled from the start of the transect to any given time is then simply the cumulative sum of distances of all previous points. To this we will call Delta Distance.
+The distance between any two points p1 and p2 is given by: Distance <sub>p1 to p2</sub> = Square root ((X<sub>2</sub> - X<sub>1</sub>) + (Y<sub>2</sub> - Y<sub>1</sub>))
 
-We can now estimate their speed. The current speed at any given point will be calculated as the speed over the previous 10 seconds:
+The full distance travelled from the start of the transect to any given point is then simply the cumulative sum of distance. To this we will call Delta Distance.
+
+The diver speed at any given point can be calculated as the speed over the previous 10 seconds:
 Speed<sub>at time</sub> = Delta Distance<sub>time</sub> - Delta Distance<sub>time - 10</sub>
-=======
-The full distance travelled from the start of the transect to any given time is then simply the cumulative sum of distances of all previous points. To this we will call &\#916 Distance.
 
-We can now estimate their speed. The current speed at any given point will be calculated as the speed over the previous 10 seconds:
-Speed<sub>time</sub> = &\#916 Distance<sub>time</sub> - &\#916 Distance<sub>time - 10</sub>
->>>>>>> 1b32add125f7a01a9ebc4010fb1cc7fdb76073dc
-
-Because we're only interested in how fast they are going relative to other points in the transect, I will leave distance units as degrees and will calculate speed as degrees per second.
+Because we're only interested in how fast they are going relative to other points in the transect, we will leave distance units as degrees and will calculate speed as degrees per second.
 
 ``` r
 transects <- transects %>% 
@@ -358,9 +351,10 @@ ggplot() +
 <img src="README_files/figure-markdown_github/points_plot-1.png" style="display: block; margin: auto;" />
 
 This methodology seems to be usefull to approximate sampling locations without manually going through video footage. One pattern is also very obvious: it was much more accurate in the last 2 transects than the first ones. There are also some points that were not detected at all. Here is the list of reasons I believe is causing the largest flaws in the method:
-\* One of the divers was using a scuba scooter for the first time. I believe this is why there are some random stops in transect 1
-\* In areas where there was no caulerpa, the divers simply kept going, meaning there is no stop
-\* Part of transect one was not even recorded in the GPS data (memory was full and it was overwritten)
+
+-   One of the divers was using a scuba scooter for the first time. I believe this is why there are some random stops in transect 1
+-   In areas where there was no caulerpa, the divers simply kept going, meaning there is no stop
+-   Part of transect one was not even recorded in the GPS data (memory was full and it was overwritten)
 
 Much of this can be fixed:
 \* Change GPS to record points every 5 seconds, rather than 1 increases the time we can record 5-fold (and carry an extra GPS just in case)
