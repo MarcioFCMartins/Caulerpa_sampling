@@ -19,7 +19,7 @@ To determine the spatial distribution of *Caulerpa prolifera*, divers swam trans
 
 ### Isolating transects
 
-Let's start by importing the tracks. File format is ".gpx". For conveniency, I will convert this information into a tabular format. There are 4 also tracks on record. We are only interested in the last one.
+Let's start by importing the tracks. File format is ".gpx". For convenience, I will convert this information into a tabular format. There are 4 also tracks on record. We are only interested in the last one.
 
 ``` r
 track <- readOGR("./GPS_tracks.gpx", layer = "track_points")
@@ -55,7 +55,7 @@ head(points)
     ## 5 2018-01-25 12:38:19  37.0 -7.81
     ## 6 2018-01-25 12:38:20  37.0 -7.81
 
-Now the information is in a tibble (a "modern take on data frames"). This format is very easy to manipulate, as well as plot using ggplot2.
+Now the information is in a tibble (a "modern take on data frames", in the words of the package creator). This format is very easy to manipulate, as well as plot using ggplot2.
 
 Let's start by getting a glimpse of the full track:
 
@@ -80,11 +80,11 @@ Using this information, we need to extract the starting and ending points of eac
 
 > Due to limitations in github .md files, this does not work on the github page.
 
-Using this interactive map we can approximate the first and last points of each trasect and obtain their ID:
+Using this interactive map we can approximate the first and last points of each transect and obtain their ID:
 - Transect one: Points 1 to 581
 - Transect two: Points 2401 to 3811
 - Transect three: Points 5311 to 6601
-- Transect four : Points 8311 to 9571
+- Transect four: Points 8311 to 9571
 
 We can now extract the transects.
 
@@ -197,7 +197,7 @@ Now that we have the transects, let's see how accurate an automated methodology 
 To do so, we will:
 
 -   Calculate the total distance travelled from start of transect until current point
--   Calculate travel speed at each point
+-   Estimate travel speed at each point
 
 The distance between any two points p1 and p2 is given by: Distance <sub>p1 to p2</sub> = Square root ((X<sub>2</sub> - X<sub>1</sub>)<sup>2</sup> + (Y<sub>2</sub> - Y<sub>1</sub>)<sup>2</sup>)
 
@@ -285,7 +285,7 @@ We're getting somewhere now.
 
 ### Estimated vs real sampling points
 
-All of the sampling points were manually determined using video footage of the dive and cross referencing the times at which samples were taken with with time of the GPS footage. To see how effective our sampling point location is we can now plot automatic and manually determined points and see how close they are.
+Sampling points were manually determined using video footage of the dive to extract time at which sampling ocurred. The GPS data was then used to determine divers position at that specific time. To see how accurate we were at extracting these sampling points, we can now plot automatic and manually determined points and see how close they are.
 
 ``` r
 #Function that identifies when the divers are stopped and gives those points an ID number
@@ -350,17 +350,17 @@ ggplot() +
 
 <img src="README_files/figure-markdown_github/points_plot-1.png" style="display: block; margin: auto;" />
 
-This methodology seems to be useful to approximate sampling locations without manually going through video footage. One pattern is also very obvious: it was much more accurate in the last 2 transects than the first ones. There are also some points that were not detected at all. Here is the the biggest causes for those errors:
+This methodology seems to be useful to approximate sampling locations without manually going through video footage. One pattern is also obvious: it was much more accurate in the last 2 transects than the first ones. There are also some points that were not detected at all. These issues might be explained by:
 
--   One of the divers was using a scuba scooter for the first time, and the first dive was done against the current. This made the first transect's speed fluctuate a
--   In areas where there was no *Caulerpa prolifera*, the divers simply kept going, meaning there is no stop
--   Part of transect one was not even recorded in the GPS data (memory was full and it was overwritten)
+-   One of the divers was using a scuba scooter for the first time, and the first dive was done against the current. This made speed along the first transect fluctuate more than in other cases
+-   In areas where there was no *Caulerpa prolifera*, the divers simply kept going, meaning there is no decrease in speed to detect
+-   Part of transect one was not recorded in the GPS data (memory was full and it was overwritten)
 
 **Much of this can be fixed by setting some rules for field work:**
-- Change GPS to record points every 5 seconds, rather than 1 increases the time we can record 5-fold, while maintaining a high resolution (make sure to carry an extra GPS just in case)
-- Ensure divers ALWAYS stop a minimum of 30 seconds per sampling point, even if there is no Caulerpa in the area
+- Change GPS to record points every 5 seconds, rather than 1 increases the time we can record 5-fold, while maintaining a reasonably high resolution (make sure to carry an extra GPS just in case)
+- Ensure divers ALWAYS stop a minimum of 30 seconds per sampling point, even if there is no algae to sample in the area
 - Record transect start and end time, so that transects can be extracted easily by filtering points between certain time periods
 
 **The reliability of the processing can be improved by:**
-- Smoothing the time series (a simple running average would likely be enough) to decrease noise in the the data and only leave stopping. This might not be as important if recording interval is changed from 1 second to 5, but it's worth looking into
-- As a check for accuracy of results, extract number of estimated sampling points and see if they match real number of samples (really easy to do at this point)
+- Smoothing the data (a simple running average would likely be enough) to decrease noise in the data. This might not be as important if recording interval is changed from 1 second to 5, but it's worth looking into
+- As a check for accuracy of results, extract number of estimated sampling points and see if they match real number of samples (easy to do at this point)
