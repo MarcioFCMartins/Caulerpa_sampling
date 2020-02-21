@@ -3,30 +3,45 @@ Caulerpa sampling in the Ria Formosa
 Márcio Martins
 26 Jan 2018
 
-Caulerpa prolifera sampling transects
--------------------------------------
+## *Caulerpa prolifera* sampling transects
 
-To determine the spatial distribution of *Caulerpa prolifera*, divers swam transects across a canal in the Ria Formosa lagoon (South Portugal) and stopped at pre-determined intervals to collect samples.
+For *Caulerpa prolifera* biomass sampling, divers performed transects
+across a canal in the Ria Formosa lagoon (South Portugal) and stopped at
+pre-determined intervals to collect samples.
 
--   The track of the divers was recorded by GPS, which was on a buoy attached to divers
--   GPS track is continuous between transects, including boat travel
--   There are a total of 4 transects
--   Sampling points were also determined by having a user look at footage of the dives, mark the times at which samples were taken and them crossing them with the GPS data. These points were then used to confirm if this automatic method is accurate
+To determine the location of those sampling points, the divers’ position
+was recorded by a handheld GPS, which was attached to a diving bouy. The
+GPS was recording a track, with an interval between records of 1 second.
 
-**GOALS:**
-1. To determine start and end point of each transect, isolate and extract them.
-2. Determine sampling points along the transect.
+The GPS track is continuous across all the transects, meaning it also
+includes boat travel.
 
-### Isolating transects
+There are a total of 4 transects
 
-Let's start by importing the tracks. File format is ".gpx". For convenience, I will convert this information into a tabular format. There are 4 also tracks on record. We are only interested in the last one.
+The original method to determine the sampling points was to have a user
+look at the video footage of the dives and mark the times at which
+samples were taken. Then, those times were crossed with the GPS data.
+This process is time consuming.
+
+**GOALS:**  
+1\. To isolate and extract the data for individual transects. 2. To
+determine sampling points along the transect.  
+3\. Compare automated method with manual one.
+
+### Isolating transect data
+
+Our GPS track was provided in “.gpx” format. For convenience, I will
+convert this information into a tabular format.
+
+There a total of 4 tracks in the device. We are only interested in the
+last one.
 
 ``` r
 track <- readOGR("./GPS_tracks.gpx", layer = "track_points")
 ```
 
     ## OGR data source with driver: GPX 
-    ## Source: "C:\Users\marci\Documents\R resources\z_Projects\Caulerpa_sampling\GPS_tracks.gpx", layer: "track_points"
+    ## Source: "D:\Documentos\R_resources\z_Projects\Caulerpa_sampling\GPS_tracks.gpx", layer: "track_points"
     ## with 10476 features
     ## It has 26 fields
 
@@ -55,38 +70,40 @@ head(points)
     ## 5 2018-01-25 12:38:19  37.0 -7.81
     ## 6 2018-01-25 12:38:20  37.0 -7.81
 
-Now the information is in a tibble (a "modern take on data frames", in the words of the package creator). This format is very easy to manipulate, as well as plot using ggplot2.
+Now the information is formated in such a way that is very easy to
+manipulate, and plot.
 
-Let's start by getting a glimpse of the full track:
+Let’s start by getting a glimpse of the full track:
 
 ``` r
 #Assign a number ID to the points, it will be used to identify points later
 points$nr <- c(1:nrow(points))
 
-map <- get_map(location = c(long = -7.819869, lat = 37.00763),
-               color = "color",
-               source = "google",
-               maptype = "satellite",
-               zoom = 14)
-ggmap(map) +
+
+ggplot() +
   geom_path(data = points, aes(x = long, y = lat), size = 1) +
   lims(x = c(min(points$long), max(points$long)), y = c(37.00176, 37.01067)) +
-  labs(x = "Longitude", y = "Latitude")
+  labs(x = "Longitude", y = "Latitude") +
+  theme_bw()
 ```
 
-<img src="README_files/figure-markdown_github/track_plot-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/track_plot-1.png" style="display: block; margin: auto;" />
 
-Using this information, we need to extract the starting and ending points of each transect. Visually, I can easily find all of the tracks. Since this is possible, I will create an interactive map to allow me to extract the ID number of these points.
+To extract the individual transects, we need to identify the start and
+end points of each transect. Those points can be identified visually. An
+interactive map was used to identify the ID of those points
 
-> Due to limitations in github .md files, this does not work on the github page.
+> note: since this work was performed, the ggmap package stopped working
+> for google satellite imagery without a google developer account. The
+> easiest way to change the package to mapview, which uses ESRI images).
+> I did not bother changing the code, as the interactive map never
+> worked in github readme anyways
 
-Using this interactive map we can approximate the first and last points of each transect and obtain their ID:
-- Transect one: Points 1 to 581
-- Transect two: Points 2401 to 3811
-- Transect three: Points 5311 to 6601
-- Transect four: Points 8311 to 9571
-
-We can now extract the transects.
+Using this method, the start and end points were identified as: -
+Transect one: Points 1 to 581  
+\- Transect two: Points 2401 to 3811  
+\- Transect three: Points 5311 to 6601  
+\- Transect four: Points 8311 to 9571
 
 ``` r
 t1 <- points %>%
@@ -108,17 +125,19 @@ t4$transect <- 4
 transects <- rbind(t1,t2,t3,t4) %>%
              mutate(transect = as.factor(transect))
 
-ggmap(map) +
+ggplot() +
   geom_path(data = transects, aes(x = long, y = lat, color = transect, group = transect), size = 0.5) +
   scale_color_manual(values = c("#e41a1c", "#4daf4a", "#984ea3","#ff7f00")) +
   lims(x = c(min(points$long), max(points$long)), y = c(37.00176, 37.01067)) +
   labs(x = "Longitude", y = "Latitude") +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  theme_bw()
 ```
 
-<img src="README_files/figure-markdown_github/transects-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/transects-1.png" style="display: block; margin: auto;" />
 
-The resulting transects seem accurate. However, results should be confirmed by checking starting and ending times for transects in the videos. To make this task easier, let's make a table with start/end times for the transects obtained here.
+We can also quickly create a table with the start and end times of each
+transect to check if they match the video footage.
 
 ``` r
 kable(transects %>%
@@ -130,84 +149,154 @@ kable_styling(full_width = F)
 ```
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+
 <thead>
+
 <tr>
+
 <th style="text-align:center;">
+
 transect
+
 </th>
+
 <th style="text-align:center;">
+
 Start
+
 </th>
+
 <th style="text-align:center;">
+
 End
+
 </th>
+
 </tr>
+
 </thead>
+
 <tbody>
+
 <tr>
+
 <td style="text-align:center;">
+
 1
+
 </td>
+
 <td style="text-align:center;">
+
 2018-01-25 12:38:15
+
 </td>
+
 <td style="text-align:center;">
+
 2018-01-25 12:48:05
+
 </td>
+
 </tr>
+
 <tr>
+
 <td style="text-align:center;">
+
 2
+
 </td>
+
 <td style="text-align:center;">
+
 2018-01-25 13:20:04
+
 </td>
+
 <td style="text-align:center;">
+
 2018-01-25 13:44:15
+
 </td>
+
 </tr>
+
 <tr>
+
 <td style="text-align:center;">
+
 3
+
 </td>
+
 <td style="text-align:center;">
+
 2018-01-25 14:10:02
+
 </td>
+
 <td style="text-align:center;">
+
 2018-01-25 14:32:52
+
 </td>
+
 </tr>
+
 <tr>
+
 <td style="text-align:center;">
+
 4
+
 </td>
+
 <td style="text-align:center;">
+
 2018-01-25 15:02:26
+
 </td>
+
 <td style="text-align:center;">
+
 2018-01-25 15:24:27
+
 </td>
+
 </tr>
+
 </tbody>
+
 </table>
 
 ### Sampling points
 
-Now that we have the transects, let's see how accurate an automated methodology to determine sampling points would be. With one point per second, we have a pretty high resolution track for the transects. An interesting method might be to estimate diver's speeds along the transects to find stopping points.
+Now that we have the transects, let’s to find a method to automate the
+extraction of the sampling points.
 
-To do so, we will:
+My approach is going to be to estimate the speed of the divers along the
+transect, and choose the sections below a certain threshold as the
+sampling points.
 
--   Calculate the total distance travelled from start of transect until current point
--   Estimate travel speed at each point
+Since speed = distance / time, and we have the time information, all we
+need is the distance between the position of the divers.
 
-The distance between any two points p1 and p2 is given by: Distance <sub>p1 to p2</sub> = Square root ((X<sub>2</sub> - X<sub>1</sub>)<sup>2</sup> + (Y<sub>2</sub> - Y<sub>1</sub>)<sup>2</sup>)
+We can estimate the distance between 2 points, p1 and p2 as: Distance
+<sub>p1 to p2</sub> = Square root ((X<sub>2</sub> -
+X<sub>1</sub>)<sup>2</sup> + (Y<sub>2</sub> -
+Y<sub>1</sub>)<sup>2</sup>)
 
-The full distance travelled from the start of the transect to any given point is then simply the cumulative sum of distance. To this we will call Delta Distance.
+The total distance travelled from the start of the transect to any given
+point *p* is then simply the cumulative sum of the distance between
+points, from the start of the transect until *p*.
 
-The diver speed at any given point can be calculated as the speed over the previous 10 seconds:
-Speed<sub>at time</sub> = (Delta Distance<sub>time - 10</sub> - Delta Distance<sub>time</sub>)/10
+The diver’s speed over the previous 10 seconds is then calculated as:  
+Speed<sub>past 10 seconds</sub> = (Delta Distance<sub>time - 10</sub> -
+Delta Distance<sub>time</sub>)/10
 
-Because we're only interested in how fast they are going relative to other points in the transect, we will leave distance units as degrees and will calculate speed as degrees per second.
+At this point, I should mention that I am not going to bother projecting
+this data, speeds will be estimated in degrees per second.
 
 ``` r
 transects <- transects %>% 
@@ -218,22 +307,30 @@ transects$distance[is.na(transects$distance)] <- 0
 
 transects <- transects %>%
              group_by(transect) %>%
-             mutate(distance = cumsum(distance - min(distance)))
+             mutate(delta_distance = cumsum(distance - min(distance)))
 
 transects <- transects %>%
              group_by(transect) %>%
-             mutate(speed = (distance - lag(distance, n = 10, default = 0))/10)
+             mutate(speed = (delta_distance - lag(delta_distance, n = 10, default = 0))/10)
 
 ggplot(transects) +
-  geom_line(aes(x = distance, y = speed)) +
+  geom_line(aes(x = time, y = speed)) +
   facet_wrap(~ transect, scales = "free") +
-  labs(x = "Distance along the transect (degrees)", y = "Speed (degrees/second)") +
+  labs(x = "Time (hh:mm)", y = "Speed (degrees/second)") +
   theme_bw()
 ```
 
-<img src="README_files/figure-markdown_github/speed-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/speed-1.png" style="display: block; margin: auto;" />
 
-This looks interesting. This visualization shows too much variation. Smoothing (running average) the plots might make points where the divers stop easier. Another alternative is simply to plot the transects, with color based on speed. Because average speed was different amongst transects, let's increase contrast of the colors. To do so, I will standardize the speed within each individual transect (subtract mean and divide by sd). We lose information about speed differences amongst transects but keep information about the parts of a transect that were slow, compared to the rest of the same transect.
+We can see that, while there are some clearly defined valleys in the
+speed along the transect. If our assumptions are correct, those should
+be our sampling points. Let’s start by performing within-transect
+standardization of the speeds, using the z-score. This means that our
+values are not a measure of how fast the divers are going, when compared
+to other points within the same transect.
+
+We can now map the transects, using color to represent the speed of the
+divers. Red will be fast, blue will be slow:
 
 ``` r
 transects <- transects %>%
@@ -258,9 +355,14 @@ ggplot() +
   theme_bw()
 ```
 
-<img src="README_files/figure-markdown_github/scaled_speed-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/scaled_speed-1.png" style="display: block; margin: auto;" />
 
-This is promising. Parts of slower movement are visible along the transect. Let's add even more contrast by dividing points based on quantiles. Sections with speed below the decided quantile will be colored blue. A bit of trial and error showed that 40th quantile is a good compromise for all transects.
+A pattern is becoming clear, but due to the continuous nature of the
+speed variable, it’s hard to define clear sampling points. We must now
+choose a classification parameter to turn speed into a discrete
+variable: slow vs fast travel speed. A bit of good old trial and error
+showed that choosing the 40th quantile as a threshhold is a good
+compromise. Points below that value will be classified as a slow point.
 
 ``` r
 transects <- transects %>%
@@ -280,22 +382,30 @@ ggplot() +
   theme_bw()
 ```
 
-<img src="README_files/figure-markdown_github/speed_quantile-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/speed_quantile-1.png" style="display: block; margin: auto;" />
 
-We're getting somewhere now.
+We’re getting somewhere now. The blue segments are segments where the
+divers were travelling slow, compared to the rest of the trasnect.
 
-### Estimated vs real sampling points
+### Comparison to points determined via video footage
 
-Sampling points were manually determined using video footage of the dive to extract time at which sampling ocurred. The GPS data was then used to determine divers position at that specific time. To see how accurate we were at extracting these sampling points, we can now plot automatic and manually determined points and see how close they are.
+To classify a point as a sampling point we will say that the divers have
+to be travelling at a slow speed for a minimum of 15 seconds. The
+centroid of the points included in that time inverval is then classified
+as a sampling point.
+
+We can now plot the points determined using the video footage and see
+how accurate we were at extracting these sampling points. The real
+sampling points will be in red. The estimated sampling points in blue.
 
 ``` r
 #Function that identifies when the divers are stopped and gives those points an ID number
 identify_points <- function(vector,interval){
   interval <- interval - 1
   point_id <- 1                       #initialize a number to identify sampling points
-  ids <- vector(mode = "numeric")     #Vector to stopre sampling points id number
+  ids <- vector(mode = "numeric")     #Vector to store sampling points id number
   for(i in 1:length(vector)){
-    #If 10 points in a row are considered slow, return TRUE (divers are stoped)
+    #If x points in a row are considered slow, return TRUE (divers are stoped)
     stopped <- all(c(vector[i:i+interval]) == "slow")
     
     ids <- ids %>%          #If diver is stoped, give point an ID, else NA
@@ -308,7 +418,9 @@ identify_points <- function(vector,interval){
   return(ids)
 }
 
-transects_smooth <- transects %>%         #To plot smooth transects I will average every 10 points and plot a path
+# To plot smooth transects I will average every 20 points and plot every 10th point
+# This data is for ploting ONLY
+transects_smooth <- transects %>%         
                     select(lat, long, nr, transect, extremety) %>%
                     group_by(transect) %>%
                     mutate(long = rollmean(long, 20, fill = NA, aling = "center"),
@@ -349,19 +461,36 @@ ggplot() +
   theme_bw()
 ```
 
-<img src="README_files/figure-markdown_github/points_plot-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/points_plot-1.png" style="display: block; margin: auto;" />
 
-This methodology seems to be useful to approximate sampling locations without manually going through video footage. One pattern is also obvious: it was much more accurate in the last 2 transects than the first ones. There are also some points that were not detected at all. These issues might be explained by:
+This methodology seems to be useful to approximate sampling locations
+without manually going through video footage. One pattern is also
+obvious: it was much more accurate in the last 2 transects than the
+first ones. There are also some points that were not detected at all.
+These issues might be explained by:
 
--   One of the divers was using a scuba scooter for the first time, and the first dive was done against the current. This made speed along the first transect fluctuate more than in other cases
--   In areas where there was no *Caulerpa prolifera*, the divers simply kept going, meaning there is no decrease in speed to detect
--   Part of transect one was not recorded in the GPS data (memory was full and it was overwritten)
+  - One of the divers was using a scuba scooter for the first time, and
+    the first dive was done against the current. This made speed along
+    the first transect fluctuate more than in other cases  
+  - In areas where there was no *Caulerpa prolifera*, the divers simply
+    kept going, meaning there is no decrease in speed to detect  
+  - Part of transect one was not recorded in the GPS data (memory was
+    full and it was overwritten)
 
-**Much of this can be fixed by setting some rules for field work:**
-- Change GPS to record points every 5 seconds, rather than 1 increases the time we can record 5-fold, while maintaining a reasonably high resolution (make sure to carry an extra GPS just in case)
-- Ensure divers ALWAYS stop a minimum of 30 seconds per sampling point, even if there is no algae to sample in the area
-- Record transect start and end time, so that transects can be extracted easily by filtering points between certain time periods
+**Much of this can be fixed by setting some rules for field work:**  
+\- Change GPS to record points every 5 seconds, rather than 1. This
+increases the time we can record 5-fold, while maintaining a reasonably
+high resolution (make sure to carry an extra GPS just in case)  
+\- Ensure divers ALWAYS stop a minimum of 30 seconds per sampling point,
+even if there is no algae to sample in the area  
+\- Record transect start and end time, so that transects can be
+extracted easily by filtering points between certain time periods
 
-**The reliability of the processing can be improved by:**
-- Smoothing the data (a simple running average would likely be enough) to decrease noise in the data. This might not be as important if recording interval is changed from 1 second to 5, but it's worth looking into
-- As a check for accuracy of results, extract number of estimated sampling points and see if they match real number of samples (easy to do at this point)
+**The reliability of the processing can be improved by:**  
+\- Smoothing the data (a simple running average would likely be enough)
+to decrease noise in the data. This might not be as important if
+recording interval is changed from 1 second to 5, but it’s worth looking
+into  
+\- As a check for accuracy of results, extract number of estimated
+sampling points and see if they match real number of samples (easy to do
+at this point)
