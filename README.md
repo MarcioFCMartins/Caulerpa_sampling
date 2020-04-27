@@ -10,7 +10,7 @@ across a canal in the Ria Formosa lagoon (South Portugal) and stopped at
 pre-determined intervals to collect samples.
 
 To determine the location of those sampling points, the divers’ position
-was recorded by a handheld GPS, which was attached to a diving bouy. The
+was recorded by a handheld GPS attached to a diving bouy. The
 GPS was recording a track, with an interval between records of 1 second.
 
 The GPS track is continuous across all the transects, meaning it also
@@ -71,7 +71,7 @@ head(points)
     ## 6 2018-01-25 12:38:20  37.0 -7.81
 
 Now the information is formated in such a way that is very easy to
-manipulate, and plot.
+manipulate and plot.
 
 Let’s start by getting a glimpse of the full track:
 
@@ -96,8 +96,8 @@ interactive map was used to identify the ID of those points
 > note: since this work was performed, the ggmap package stopped working
 > for google satellite imagery without a google developer account. The
 > easiest way to change the package to mapview, which uses ESRI images).
-> I did not bother changing the code, as the interactive map never
-> worked in github readme anyways
+> I did not bother changing the code, as the interactive map does not
+> work in github readme anyways
 
 Using this method, the start and end points were identified as: -
 Transect one: Points 1 to 581  
@@ -272,7 +272,7 @@ End
 
 ### Sampling points
 
-Now that we have the transects, let’s to find a method to automate the
+Now that we have isolated the transects, let’s to find a method to automate the
 extraction of the sampling points.
 
 My approach is going to be to estimate the speed of the divers along the
@@ -322,14 +322,14 @@ ggplot(transects) +
 
 <img src="README_files/figure-gfm/speed-1.png" style="display: block; margin: auto;" />
 
-We can see that, while there are some clearly defined valleys in the
+We can see that there are some clearly defined valleys in the
 speed along the transect. If our assumptions are correct, those should
 be our sampling points. Let’s start by performing within-transect
-standardization of the speeds, using the z-score. This means that our
-values are not a measure of how fast the divers are going, when compared
+standardization of the speeds, using the z-score. This means that new scale 
+is a value for the speed of the divers, relative to 
 to other points within the same transect.
 
-We can now map the transects, using color to represent the speed of the
+I will now map the transects, using color to represent the speed of the
 divers. Red will be fast, blue will be slow:
 
 ``` r
